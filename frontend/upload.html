@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Dados – Fato ou Fake?</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+        body { font-family: "Segoe UI", sans-serif; background: #f4f4f7; color: #333 }
+        .navbar { background: #ffffff; padding: 10px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); font-size: 14px; }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: #666; text-decoration: none; }
+        .nav-actions button { padding: 4px 12px; font-size: 13px; border-radius: 4px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; margin-left: 10px; }
+        .nav-actions .primary { background: #2b2b2b; color: #fff; border: none; }
+        .popup { background: #fff; border-radius: 20px; width: 720px; max-width: 95%; padding: 32px 40px; box-shadow: 0 12px 28px rgba(0,0,0,.14); margin: 40px auto; }
+        .popup h2 { font-size: 22px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px }
+        .popup small { color: #888 }
+        .field { margin-bottom: 18px }
+        .field label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 6px }
+        .field input, .field textarea, .field select { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px }
+        textarea { min-height: 70px; resize: vertical }
+        .field-row { display: flex; gap: 16px }
+        .field-row .field { flex: 1 }
+        .chk-row { display: flex; gap: 12px; margin-top: 6px; flex-wrap: wrap; }
+        .metric-row { display: flex; gap: 8px; margin-top: 6px }
+        .metric-row input { flex: 1 }
+        .metric-row button { background: none; border: none; color: #c33; font-size: 16px; cursor: pointer }
+        .btn-add { margin-top: 6px; font-size: 13px; color: #3a86ff; background: none; border: none; cursor: pointer }
+        .actions { display: flex; justify-content: flex-end; gap: 16px; margin-top: 28px; border-top: 1px solid #eee; padding-top: 20px; }
+        .actions button { padding: 10px 26px; border: none; border-radius: 6px; font-size: 15px; cursor: pointer }
+        .actions .cancel { background: #e5e5e5 }
+        .actions .submit { background: #3a86ff; color: #fff }
+        .section-title { margin-top: 30px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 20px }
+        .hidden { display: none }
+        .choice-group label { display: block; background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .choice-group label:hover { border-color: #3a86ff; }
+        .choice-group input[type="radio"]:checked + label { border-color: #3a86ff; background-color: #eef3ff; box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.3); }
+        .choice-group input[type="radio"] { opacity: 0; position: fixed; width: 0; }
+        .drop { border: 2px dashed #a8b9d8; border-radius: 10px; padding: 32px 16px; text-align: center; margin: 24px 0; transition: background .2s,border-color .2s }
+        .drop.dragover { background: #eef3ff; border-color: #5c8dff }
+        .drop p { margin-bottom: 16px }
+        .drop button { padding: 6px 22px; border: 1px solid #ccc; border-radius: 20px; background: #fff; cursor: pointer }
+        .hidden-input { display: none }
+        .file-status { font-size: 13px; color: #2a7b2a; margin-top: 6px; }
+        .or-separator { text-align: center; color: #777; font-size: 13px; margin: 16px 0; }
+        #notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: #fff; font-weight: 600; z-index: 1000; display: none; }
+        #notification.success { background-color: #28a745; }
+        #notification.error { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <nav class="nav-links">
+        <a href="dashboard.html">Home</a>
+        <a href="pesquisar.html">Pesquisar</a>
+    </nav>
+    <div class="nav-actions" id="nav-actions"></div>
+</header>
+<div id="notification"></div>
+
+<div class="popup" id="popup-form">
+    <h2><i class="fas fa-database"></i> Cadastro de Dados</h2>
+    <small>Cadastre os resultados de suas análises ou apenas armazene seus arquivos de mídia.</small>
+
+    <h3 class="section-title">1. Qual o seu objetivo?</h3>
+    <div class="choice-group">
+        <input type="radio" id="choiceResultados" name="uploadType" value="resultados">
+        <label for="choiceResultados">
+            <strong>Cadastrar um Lote com Resultados (via <code>.csv</code> ou <code>.json</code>)</strong>
+            <p style="font-size:13px; color: #666; margin-top:4px;">Para importar uma planilha com dados de análise completos (score, confiança, rótulos, etc.).</p>
+        </label>
+        <input type="radio" id="choiceArmazenar" name="uploadType" value="armazenar">
+        <label for="choiceArmazenar">
+            <strong>Apenas Armazenar um Lote de Mídias</strong>
+            <p style="font-size:13px; color: #666; margin-top:4px;">Para guardar arquivos de imagem/vídeo/áudio no sistema, seja via upload local ou link do Drive.</p>
+        </label>
+    </div>
+
+    <form id="mainForm" novalidate>
+        <div id="formResultados" class="hidden">
+            <h3 class="section-title">2. Detalhes do Lote de Resultados</h3>
+            <div class="drop" id="drop"><p>Arraste e solte o arquivo .csv ou .json aqui</p><button type="button" id="browseBtn">Procurar Arquivo</button><input type="file" id="fileInput" class="hidden-input" accept=".csv,.json"></div>
+            <p class="or-separator">ou</p>
+            <div class="field"><label for="gdriveResultados">Cole o link do seu arquivo no Google Drive</label><input type="url" id="gdriveResultados" placeholder="https://drive.google.com/..." /><button type="button" style="margin-top:8px;padding:6px 22px;border:1px solid #ccc;border-radius:18px; background:#ddd;cursor:not-allowed;" id="useLinkResultados" disabled>Usar Link</button></div>
+            <div id="fileStatusResultados" class="file-status hidden">✓ Fonte de dados selecionada.</div>
+            <div style="border-top: 1px solid #eee; margin-top: 24px; padding-top: 24px;">
+                <div class="field"><label>Tipo de conteúdo no lote</label><div class="chk-row" id="tiposConteudoResultados"><label><input type="checkbox" name="tipoConteudoLote" value="Texto"> Texto</label><label><input type="checkbox" name="tipoConteudoLote" value="Imagem"> Imagem</label><label><input type="checkbox" name="tipoConteudoLote" value="Audio"> Áudio</label><label><input type="checkbox" name="tipoConteudoLote" value="Video"> Vídeo</label></div></div>
+                <div class="field-row">
+                    <div class="field"><label>Algoritmo/Modelo Utilizado</label><input type="text" id="nomeAlgoritmo" placeholder="Ex: FakeDetect-BERT"></div>
+                    <div class="field"><label>Versão do Algoritmo</label><input type="text" id="versaoAlgoritmo" placeholder="Ex: v3.0"></div>
+                </div>
+                <div class="field-row">
+                    <div class="field"><label>Data de Treinamento do Modelo</label><input type="date" id="dataTreinamento"></div>
+                    <div class="field"><label>Data da Análise/Execução</label><input type="datetime-local" id="dataExecucao"></div>
+                </div>
+                <div class="field"><label>Parâmetros do modelo</label><div id="paramsZone"></div><button type="button" class="btn-add" onclick="addDynamicRow(event, 'param')">+ Adicionar Parâmetro</button></div>
+                <div class="field"><label>Métricas e valores</label><div id="metricZone"></div><button type="button" class="btn-add" onclick="addDynamicRow(event, 'metric')">+ Adicionar Métrica</button></div>
+            </div>
+        </div>
+        <div id="formArmazenar" class="hidden">
+            <h3 class="section-title">2. Detalhes do Lote para Armazenamento</h3>
+            <div class="field"><label for="mediaFiles">Opção 1: Arquivos de Mídia (seleção múltipla)</label><input type="file" id="mediaFiles" multiple style="padding: 20px; border-style: dashed;"></div>
+            <p class="or-separator">ou</p>
+            <div class="field"><label for="gdriveArmazenar">Opção 2: Link de pasta no Google Drive</label><input type="url" id="gdriveArmazenar" placeholder="https://drive.google.com/drive/folders/..." /><button type="button" style="margin-top:8px;padding:6px 22px;border:1px solid #ccc;border-radius:18px; background:#ddd;cursor:not-allowed;" id="useLinkArmazenar" disabled>Usar Link</button></div>
+            <div id="fileStatusArmazenar" class="file-status hidden">✓ Fonte de dados selecionada.</div>
+            <div style="border-top: 1px solid #eee; margin-top: 24px; padding-top: 24px;">
+                <div class="field"><label>Nome do Dataset</label><input type="text" id="nomeDataset"></div>
+                <div class="field"><label>Descrição</label><textarea id="descricaoDataset"></textarea></div>
+                <div class="field"><label>Tipo de conteúdo principal</label><div class="chk-row" id="tiposConteudoArmazenar"><label><input type="checkbox" value="image"> Imagem</label><label><input type="checkbox" value="audio"> Áudio</label><label><input type="checkbox" value="video"> Vídeo</label><label><input type="checkbox" value="text"> Texto</label></div></div>
+                <div class="field"><label>Fonte</label><input type="url" id="fonteGeral" placeholder="Fonte geral para este lote de mídias"></div>
+            </div>
+        </div>
+        <div class="actions hidden" id="formActions">
+            <button type="button" class="cancel" onclick="window.location.reload()">Cancelar</button>
+            <button type="submit" class="submit" id="submitButton">Salvar Lote</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const API_URL = 'http://127.0.0.1:5000/api';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const navActions = document.getElementById('nav-actions');
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            navActions.innerHTML = '<button class="primary" id="logoutButton">Sair</button>';
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                localStorage.removeItem('authToken');
+                window.location.href = 'index.html';
+            });
+        } else {
+            window.location.href = 'login.html';
+        }
+
+        const mainForm = document.getElementById('mainForm');
+        document.querySelectorAll('input[name="uploadType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('formActions').classList.remove('hidden');
+                document.getElementById('formResultados').classList.toggle('hidden', this.value !== 'resultados');
+                document.getElementById('formArmazenar').classList.toggle('hidden', this.value !== 'armazenar');
+            });
+        });
+
+        mainForm.addEventListener('submit', handleFormSubmit);
+        setupDragAndDrop();
+        setupGdriveInput('gdriveResultados', 'useLinkResultados', 'fileStatusResultados');
+        setupGdriveInput('gdriveArmazenar', 'useLinkArmazenar', 'fileStatusArmazenar');
+        
+        document.getElementById('mediaFiles').addEventListener('change', (event) => {
+            const fileStatus = document.getElementById('fileStatusArmazenar');
+            if (event.target.files.length > 0) {
+                fileStatus.textContent = `✓ ${event.target.files.length} arquivo(s) selecionado(s).`;
+                fileStatus.classList.remove('hidden');
+                document.getElementById('gdriveArmazenar').value = '';
+            } else {
+                fileStatus.classList.add('hidden');
+            }
+        });
+    });
+
+    async function handleFormSubmit(event) {
+        event.preventDefault();
+        const submitButton = document.getElementById('submitButton');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Enviando...';
+
+        const token = localStorage.getItem('authToken');
+        const uploadType = document.querySelector('input[name="uploadType"]:checked');
+        
+        if (!uploadType) {
+            showNotification("Por favor, selecione um objetivo (Resultados ou Armazenar).", 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Salvar Lote';
+            return;
+        }
+
+        let endpoint = '';
+        let payload = {};
+
+        try {
+            if (uploadType.value === 'resultados') {
+                endpoint = `${API_URL}/upload/resultados`;
+                payload = await buildResultadosPayload();
+            } else {
+                endpoint = `${API_URL}/upload/armazenar`;
+                payload = buildArmazenarPayload();
+            }
+            if (!payload) {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Salvar Lote';
+                return;
+            }
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                showNotification(result.message, 'success');
+                mainForm.reset();
+                document.getElementById('formResultados').classList.add('hidden');
+                document.getElementById('formArmazenar').classList.add('hidden');
+                document.getElementById('formActions').classList.add('hidden');
+                uploadType.checked = false;
+            } else {
+                throw new Error(result.message || 'Ocorreu um erro no servidor.');
+            }
+        } catch (error) {
+            showNotification(`Erro: ${error.message}`, 'error');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Salvar Lote';
+        }
+    }
+    
+    function buildResultadosPayload() {
+        return new Promise((resolve) => {
+            const requiredFields = {
+                'nomeAlgoritmo': "Algoritmo/Modelo Utilizado",
+                'versaoAlgoritmo': "Versão do Algoritmo",
+                'dataTreinamento': "Data de Treinamento do Modelo",
+                'dataExecucao': "Data da Análise/Execução"
+            };
+            for (const [id, name] of Object.entries(requiredFields)) {
+                if (!document.getElementById(id).value) {
+                    showNotification(`O campo "${name}" é obrigatório.`, 'error');
+                    return resolve(null);
+                }
+            }
+
+            const fileInput = document.getElementById('fileInput');
+            const gdriveUrl = document.getElementById('gdriveResultados').value;
+
+            const basePayload = {
+                nomeAlgoritmo: document.getElementById('nomeAlgoritmo').value,
+                versaoAlgoritmo: document.getElementById('versaoAlgoritmo').value,
+                dataTreinamento: document.getElementById('dataTreinamento').value,
+                dataExecucao: document.getElementById('dataExecucao').value,
+                tiposConteudo: Array.from(document.querySelectorAll('#tiposConteudoResultados input:checked')).map(cb => cb.value)
+            };
+
+            const parametros = {};
+            document.querySelectorAll('#paramsZone .metric-row').forEach(row => {
+                const key = row.children[0].value;
+                const value = row.children[1].value;
+                if (key) parametros[key] = isNaN(value) || value === '' ? value : Number(value);
+            });
+            document.querySelectorAll('#metricZone .metric-row').forEach(row => {
+                const key = row.children[0].value;
+                const value = row.children[1].value;
+                if (key) parametros[`metric_${key}`] = isNaN(value) || value === '' ? value : Number(value);
+            });
+            basePayload.parametrosAlgoritmo = parametros;
+
+            if (gdriveUrl && !fileInput.files.length) {
+                basePayload.gdriveUrl = gdriveUrl;
+                resolve(basePayload);
+            } else if (fileInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const fileContent = e.target.result;
+                        if (fileInput.files[0].name.endsWith('.json')) {
+                            basePayload.loteDados = JSON.parse(fileContent);
+                        } else if (fileInput.files[0].name.endsWith('.csv')) {
+                            basePayload.loteDados = csvToJSON(fileContent);
+                        }
+                        resolve(basePayload);
+                    } catch (err) {
+                        showNotification('Formato de arquivo inválido ou corrompido.', 'error');
+                        resolve(null);
+                    }
+                };
+                reader.onerror = () => {
+                    showNotification('Não foi possível ler o arquivo.', 'error');
+                    resolve(null);
+                };
+                reader.readAsText(fileInput.files[0]);
+            } else {
+                showNotification('Por favor, selecione um arquivo ou forneça um link do Google Drive.', 'error');
+                return resolve(null);
+            }
+        });
+    }
+
+    function buildArmazenarPayload() {
+        const nomeDataset = document.querySelector('#formArmazenar #nomeDataset').value;
+        if (!nomeDataset) {
+            showNotification("O campo 'Nome do Dataset' é obrigatório.", 'error');
+            return null;
+        }
+        
+        const gdriveLink = document.getElementById('gdriveArmazenar').value;
+        const mediaFiles = document.getElementById('mediaFiles').files;
+        let mediaUrlToSubmit = "N/A";
+
+        if (gdriveLink) {
+            mediaUrlToSubmit = gdriveLink;
+        } else if (mediaFiles.length > 0) {
+            mediaUrlToSubmit = `local-upload://${mediaFiles.length}-files-selected`;
+        }
+
+        return {
+            nomeDataset: nomeDataset,
+            descricaoDataset: document.querySelector('#formArmazenar #descricaoDataset').value,
+            fonteGeral: document.querySelector('#formArmazenar #fonteGeral').value,
+            midiaUrl: mediaUrlToSubmit,
+        };
+    }
+
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = type;
+        notification.style.display = 'block';
+        setTimeout(() => { notification.style.display = 'none'; }, 5000);
+    }
+
+    function addDynamicRow(event, type) {
+        const zone = event.target.previousElementSibling;
+        const row = document.createElement('div');
+        row.className = 'metric-row';
+        if (type === 'param') {
+            row.innerHTML = `<input type="text" placeholder="Parâmetro (ex: learning_rate)"><input type="text" placeholder="Valor (ex: 0.001)"><button type="button" title="Remover" onclick="this.parentElement.remove()">&times;</button>`;
+        } else {
+            row.innerHTML = `<input type="text" placeholder="Métrica (ex: accuracy)"><input type="number" step="0.0001" placeholder="Valor"><button type="button" title="Remover" onclick="this.parentElement.remove()">&times;</button>`;
+        }
+        zone.appendChild(row);
+    }
+
+    function setupDragAndDrop() {
+        const drop = document.getElementById('drop');
+        const fileInput = document.getElementById('fileInput');
+        const fileStatus = document.getElementById('fileStatusResultados');
+        
+        ['dragenter','dragover'].forEach(evt => drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.add('dragover') }));
+        ['dragleave','drop'].forEach(evt => drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.remove('dragover') }));
+        
+        drop.addEventListener('drop', e => {
+            if(e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileStatus.textContent = `✓ Arquivo selecionado: ${fileInput.files[0].name}`;
+                fileStatus.classList.remove('hidden');
+                document.getElementById('gdriveResultados').value = ''; 
+            }
+        });
+
+        document.getElementById('browseBtn').addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => {
+            if(fileInput.files.length) {
+                fileStatus.textContent = `✓ Arquivo selecionado: ${fileInput.files[0].name}`;
+                fileStatus.classList.remove('hidden');
+                document.getElementById('gdriveResultados').value = '';
+            }
+        });
+    }
+
+    function setupGdriveInput(gdriveId, buttonId, statusId) {
+        const gdrive = document.getElementById(gdriveId);
+        const useLinkBtn = document.getElementById(buttonId);
+        gdrive.addEventListener('input', () => {
+            const isValid = gdrive.value.trim().startsWith('https://drive.google.com/');
+            useLinkBtn.disabled = !isValid;
+            useLinkBtn.style.cursor = isValid ? 'pointer' : 'not-allowed';
+            useLinkBtn.style.background = isValid ? '#f0f0f0' : '#ddd';
+        });
+        useLinkBtn.addEventListener('click', () => {
+            if(useLinkBtn.disabled) return;
+            document.getElementById(statusId).textContent = '✓ Link do Google Drive selecionado como fonte de dados.';
+            document.getElementById(statusId).classList.remove('hidden');
+            if(gdriveId === 'gdriveResultados') {
+                document.getElementById('fileInput').value = ''; 
+            } else {
+                document.getElementById('mediaFiles').value = '';
+            }
+        });
+    }
+
+    function csvToJSON(csv) {
+        const lines = csv.split(/\r?\n/).filter(line => line.trim() !== '');
+        const headers = lines[0].split(',').map(h => h.trim());
+        const result = [];
+        for (let i = 1; i < lines.length; i++) {
+            const obj = {};
+            const currentline = lines[i].split(',');
+            for (let j = 0; j < headers.length; j++) {
+                obj[headers[j]] = currentline[j] ? currentline[j].trim() : null;
+            }
+            result.push(obj);
+        }
+        return result;
+    }
+</script>
+</body>
+</html>

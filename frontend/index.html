@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Fato ou Fake?</title>
+    <style>
+        :root { --primary-color: #3a86ff; --dark-color: #2b2b2b; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Segoe UI", sans-serif; background: #f9f9fb; color: #272727; min-height: 100vh; display: flex; flex-direction: column; }
+        .navbar { background: #ffffff; padding: 10px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); font-size: 14px; }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: #666; text-decoration: none; }
+        .nav-buttons a { padding: 8px 16px; font-size: 14px; border-radius: 6px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; margin-left: 10px; text-decoration: none; color: #333; }
+        .nav-buttons a.dark { background: var(--dark-color); color: #fff; border: none; }
+        main { flex: 1; display: flex; justify-content: center; align-items: center; }
+        .hero { text-align: center; padding: 20px; }
+        .hero h1 { font-size: 42px; font-weight: 700; margin-bottom: 8px; }
+        .hero h1 strong { color: #000; }
+        .hero p { color: #555; font-size: 16px; margin-bottom: 30px; }
+        .hero-buttons a { padding: 12px 28px; font-size: 16px; border-radius: 6px; text-decoration: none; margin: 0 10px; }
+        .hero-buttons .btn.light { border: 1px solid #d0d0d0; background: #fff; color: #333; }
+        .hero-buttons .btn.dark { background: var(--dark-color); color: #fff; border: none; }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-links">
+            <a href="#">Projetos</a>
+            <a href="#">Membros</a>
+            <a href="#">Recursos</a>
+            <a href="#">Contato</a>
+        </div>
+        <div class="nav-buttons">
+            <a href="login.html" class="btn light">Entrar</a>
+            <a href="#" class="btn dark">Registrar</a>
+        </div>
+    </header>
+    <main>
+        <section class="hero">
+            <h1><strong>Fato</strong> ou <strong>Fake?</strong></h1>
+            <p>Grupo de extensão da UFSCAR</p>
+            <div class="hero-buttons">
+                <a href="login.html" class="btn light">Entrar</a>
+                <a href="#" class="btn dark">Registrar</a>
+            </div>
+        </section>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('authToken')) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>
