@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Pesquisa Avançada – Fato ou Fake?</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        :root {--primary-color: #3a86ff; --dark-color: #2b2b2b; --light-gray: #f7f7f7; --border-color: #dcdcdc;}
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Segoe UI", sans-serif; background: var(--light-gray); color: #333; }
+        .navbar { background: #ffffff; padding: 10px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); font-size: 14px; }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: #666; text-decoration: none; }
+        .nav-actions button { padding: 4px 12px; font-size: 13px; border-radius: 4px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; margin-left: 10px; }
+        .nav-actions .primary { background: #2b2b2b; color: #fff; border: none; }
+        .search-wrapper { display: flex; gap: 12px; padding: 28px 24px; background: #fff; flex-wrap: wrap; align-items: center; border-bottom: 1px solid #eee; }
+        .search-wrapper input[type="text"] { flex: 1; min-width: 200px; padding: 10px 16px; border: 1px solid var(--border-color); border-radius: 50px; font-size: 14px; }
+        .btn-icon, .btn-filters { display: flex; align-items: center; justify-content: center; height: 44px; border-radius: 50px; border: none; cursor: pointer; font-size: 14px; transition: background-color 0.2s; }
+        .btn-icon { width: 44px; background: var(--dark-color); color: #fff; }
+        .btn-filters { gap: 8px; padding: 0 22px; background: var(--dark-color); color: #fff; }
+        #filtros-avancados { display: none; background: #fff; padding: 24px; flex-direction: column; gap: 20px; }
+        fieldset { border: 1px solid var(--border-color); border-radius: 8px; padding: 16px 24px 24px 24px; display: flex; flex-wrap: wrap; gap: 22px; }
+        legend { font-size: 16px; font-weight: 600; color: var(--primary-color); padding: 0 10px; margin-left: 10px; }
+        .filtro-group { display: flex; flex-direction: column; gap: 6px; flex: 1 1 230px; min-width: 200px; }
+        .filtro-group label { font-size: 13px; font-weight: 600; color: #555; }
+        .filtro-group input, .filtro-group select { padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; background: #fff; width: 100%;}
+        .filtro-group .checkbox-group { display: flex; align-items: center; gap: 15px; margin-top: 4px; flex-wrap: wrap; }
+        .hidden { display: none !important; }
+        .range-inputs { display: flex; gap: 8px; }
+        #results-area { padding: 24px; }
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .btn-download { background: #17a2b8; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .btn-download:disabled { background: #ccc; cursor: not-allowed; }
+        #results-table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        #results-table th, #results-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        #results-table th { background-color: #f8f9fa; font-size: 13px; text-transform: uppercase; color: #555; }
+        #results-table td { font-size: 14px; }
+        #results-message { padding: 40px; text-align: center; background: #fff; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <nav class="nav-links">
+        <a href="dashboard.html">Home</a>
+        <a href="upload.html">Upload</a>
+    </nav>
+    <div class="nav-actions" id="nav-actions"></div>
+</header>
+
+<section class="search-wrapper">
+    <input type="text" id="mainSearch" placeholder="Pesquisar por texto, descrição ou justificativa...">
+    <button class="btn-icon" id="searchButton" aria-label="Pesquisar"><i class="fas fa-search"></i></button>
+    <button class="btn-filters" onclick="toggleFiltros(event)">
+        <i class="fas fa-plus"></i><span id="labelFiltro">Filtros Avançados</span>
+    </button>
+</section>
+
+<form id="filtros-avancados">
+    <fieldset>
+        <legend>Tipo de Pesquisa</legend>
+        <div class="filtro-group" style="flex-basis: 100%;"><label for="tipoPesquisa">O que deseja pesquisar?</label><select id="tipoPesquisa"><option value="resultados" selected>Lotes com Resultados de Análise</option><option value="armazenamento">Lotes de Mídia Armazenada</option></select></div>
+    </fieldset>
+    <div id="filtros-resultados">
+        <fieldset>
+            <legend>Análise e Algoritmo</legend>
+            <div class="filtro-group"><label for="nomeAlgoritmo">Nome do Algoritmo</label><input type="text" id="nomeAlgoritmo" placeholder="ex: FakeDetect"></div>
+            <div class="filtro-group"><label for="versaoAlgoritmo">Versão do Algoritmo</label><input type="text" id="versaoAlgoritmo" placeholder="ex: v2.1.0"></div>
+            <div class="filtro-group"><label for="parametrosAlgoritmoQuery">Parâmetros do Modelo</label><input type="text" id="parametrosAlgoritmoQuery" placeholder="Contém: learning_rate=0.001"></div>
+            <div class="filtro-group"><label>Intervalo de Confiança (%)</label><div class="range-inputs"><input type="number" id="confiancaMin" min="0" max="100" placeholder="Mín."><input type="number" id="confiancaMax" min="0" max="100" placeholder="Máx."></div></div>
+            <div class="filtro-group"><label>Intervalo de Score</label><div class="range-inputs"><input type="number" id="scoreMin" step="0.01" placeholder="Mín."><input type="number" id="scoreMax" step="0.01" placeholder="Máx."></div></div>
+            <div class="filtro-group"><label for="categoriaDetectada">Categoria Detetada</label><select id="categoriaDetectada"><option value="">Qualquer</option><option>Verdadeiro</option><option>Falso</option></select></div>
+        </fieldset>
+        <fieldset>
+            <legend>Conteúdo Original</legend>
+            <div class="filtro-group"><label for="fonteConteudo">Fonte do Conteúdo</label><input type="text" id="fonteConteudo" placeholder="ex: twitter.com"></div>
+            <div class="filtro-group"><label for="dataPublicacaoInicio">Publicado Entre</label><div class="range-inputs"><input type="date" id="dataPublicacaoInicio"><input type="date" id="dataPublicacaoFim"></div></div>
+            <div class="filtro-group"><label for="categoriaInicial">Categoria Inicial</label><select id="categoriaInicial"><option value="">Qualquer</option><option>Verdadeiro</option><option>Falso</option></select></div>
+            <div class="filtro-group"><label for="metadadosConteudoQuery">Metadados</label><input type="text" id="metadadosConteudoQuery" placeholder="Contém: compartilhamentos > 50"></div>
+            <div class="filtro-group" style="flex-basis: 100%;"><label>Tipo de Conteúdo</label><div class="checkbox-group" id="tiposConteudo"><label><input type="checkbox" value="Texto"> Texto</label><label><input type="checkbox" value="Imagem"> Imagem</label><label><input type="checkbox" value="Audio"> Áudio</label><label><input type="checkbox" value="Video"> Vídeo</label></div></div>
+        </fieldset>
+        <fieldset>
+            <legend>Auditoria e Sistema</legend>
+            <div class="filtro-group"><label for="dataExecucaoInicio">Analisado Entre</label><div class="range-inputs"><input type="date" id="dataExecucaoInicio"><input type="date" id="dataExecucaoFim"></div></div>
+            <div class="filtro-group"><label for="dataTreinamentoInicio">Treinado Entre</label><div class="range-inputs"><input type="date" id="dataTreinamentoInicio"><input type="date" id="dataTreinamentoFim"></div></div>
+            <div class="filtro-group"><label for="nomeUploader">Enviado por (Uploader)</label><input type="text" id="nomeUploader" placeholder="ex: Ayla"></div>
+        </fieldset>
+    </div>
+    <div id="filtros-armazenamento" class="hidden">
+        <fieldset>
+            <legend>Filtros de Mídia Armazenada</legend>
+            <div class="filtro-group"><label for="nomeDataset">Nome do Dataset</label><input type="text" id="nomeDataset"></div>
+            <div class="filtro-group"><label for="fonteMidia">Fonte</label><input type="text" id="fonteMidia" placeholder="Fonte geral do lote"></div>
+            <div class="filtro-group"><label for="nomeUploaderArmazenamento">Enviado por (Uploader)</label><input type="text" id="nomeUploaderArmazenamento"></div>
+            <div class="filtro-group" style="flex-basis: 100%;"><label>Tipo de Conteúdo</label>
+                <div class="checkbox-group" id="tiposConteudoArmazenamento">
+                    <label><input type="checkbox" value="Texto"> Texto</label>
+                    <label><input type="checkbox" value="Imagem"> Imagem</label>
+                    <label><input type="checkbox" value="Audio"> Áudio</label>
+                    <label><input type="checkbox" value="Video"> Vídeo</label>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</form>
+
+<section id="results-area">
+    <div class="results-header">
+        <h2>Resultados da Pesquisa</h2>
+        <button id="downloadButton" class="btn-download" disabled>Download (CSV)</button>
+    </div>
+    <div id="results-container">
+        <p id="results-message">Nenhuma pesquisa foi realizada ainda.</p>
+    </div>
+</section>
+
+<script>
+    const API_URL = 'http://127.0.0.1:5000/api';
+    let currentResultsData = []; 
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const navActions = document.getElementById('nav-actions');
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            navActions.innerHTML = '<button class="primary" id="logoutButton">Sair</button>';
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                localStorage.removeItem('authToken');
+                window.location.href = 'index.html';
+            });
+        } else {
+            window.location.href = 'login.html';
+        }
+
+        const tipoPesquisaSelect = document.getElementById('tipoPesquisa');
+        tipoPesquisaSelect.addEventListener('change', function() {
+            document.getElementById('filtros-resultados').classList.toggle('hidden', this.value !== 'resultados');
+            document.getElementById('filtros-armazenamento').classList.toggle('hidden', this.value !== 'armazenamento');
+        });
+
+        document.getElementById('searchButton').addEventListener('click', performSearch);
+        document.getElementById('downloadButton').addEventListener('click', downloadResults);
+    });
+    
+    function toggleFiltros(event) {
+        const filtros = document.getElementById("filtros-avancados");
+        const label = document.getElementById("labelFiltro");
+        const icon = event.currentTarget.querySelector("i");
+        const isVisible = filtros.style.display === "flex";
+        filtros.style.display = isVisible ? "none" : "flex";
+        label.textContent = isVisible ? "Filtros Avançados" : "Ocultar Filtros";
+        icon.className = isVisible ? "fas fa-plus" : "fas fa-minus";
+    }
+
+    async function performSearch() {
+        const token = localStorage.getItem('authToken');
+        const resultsContainer = document.getElementById('results-container');
+        const downloadButton = document.getElementById('downloadButton');
+        resultsContainer.innerHTML = '<p id="results-message">Pesquisando...</p>';
+        downloadButton.disabled = true;
+        currentResultsData = [];
+
+        const searchType = document.getElementById('tipoPesquisa').value;
+        let endpoint = '';
+        let payload = {};
+
+        if (searchType === 'resultados') {
+            endpoint = `${API_URL}/search/resultados`;
+            payload = {
+                textoLivre: document.getElementById('mainSearch').value || null,
+                nomeAlgoritmo: document.getElementById('nomeAlgoritmo').value || null,
+                versaoAlgoritmo: document.getElementById('versaoAlgoritmo').value || null,
+                parametrosAlgoritmoQuery: document.getElementById('parametrosAlgoritmoQuery').value || null,
+                confiancaMin: document.getElementById('confiancaMin').value ? parseFloat(document.getElementById('confiancaMin').value) / 100 : null,
+                confiancaMax: document.getElementById('confiancaMax').value ? parseFloat(document.getElementById('confiancaMax').value) / 100 : null,
+                scoreMin: document.getElementById('scoreMin').value ? parseFloat(document.getElementById('scoreMin').value) : null,
+                scoreMax: document.getElementById('scoreMax').value ? parseFloat(document.getElementById('scoreMax').value) : null,
+                categoriaDetectada: document.getElementById('categoriaDetectada').value || null,
+                fonteConteudo: document.getElementById('fonteConteudo').value || null,
+                categoriaInicial: document.getElementById('categoriaInicial').value || null,
+                metadadosConteudoQuery: document.getElementById('metadadosConteudoQuery').value || null,
+                tiposConteudoJSON: Array.from(document.querySelectorAll('#tiposConteudo input:checked')).map(cb => cb.value),
+                dataPublicacaoInicio: document.getElementById('dataPublicacaoInicio').value || null,
+                dataPublicacaoFim: document.getElementById('dataPublicacaoFim').value || null,
+                dataExecucaoInicio: document.getElementById('dataExecucaoInicio').value || null,
+                dataExecucaoFim: document.getElementById('dataExecucaoFim').value || null,
+                dataTreinamentoInicio: document.getElementById('dataTreinamentoInicio').value || null,
+                dataTreinamentoFim: document.getElementById('dataTreinamentoFim').value || null,
+                nomeUploader: document.getElementById('nomeUploader').value || null
+            };
+        } else {
+            endpoint = `${API_URL}/search/midia`;
+            payload = {
+                textoLivre: document.getElementById('mainSearch').value || null,
+                nomeDataset: document.getElementById('nomeDataset').value || null,
+                fonte: document.getElementById('fonteMidia').value || null,
+                nomeUploader: document.getElementById('nomeUploaderArmazenamento').value || null,
+                tiposConteudoJSON: Array.from(document.querySelectorAll('#tiposConteudoArmazenamento input:checked')).map(cb => cb.value)
+            };
+        }
+        
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                renderResults(result.data);
+            } else {
+                throw new Error(result.message || 'Erro ao buscar dados.');
+            }
+        } catch (error) {
+            resultsContainer.innerHTML = `<p id="results-message" style="color: red;">Erro: ${error.message}</p>`;
+        }
+    }
+
+    function renderResults(data) {
+        const container = document.getElementById('results-container');
+        const downloadButton = document.getElementById('downloadButton');
+        currentResultsData = data;
+
+        if (!data || data.length === 0) {
+            container.innerHTML = '<p id="results-message">Nenhum resultado encontrado.</p>';
+            downloadButton.disabled = true;
+            return;
+        }
+
+        downloadButton.disabled = false;
+        let tableHTML = '<table id="results-table"><thead><tr>';
+        const headers = Object.keys(data[0]);
+        headers.forEach(header => tableHTML += `<th>${header}</th>`);
+        tableHTML += '</tr></thead><tbody>';
+
+        data.forEach(row => {
+            tableHTML += '<tr>';
+            headers.forEach(header => {
+                let value = row[header];
+                let cellContent = '';
+
+                // ****** CORREÇÃO APLICADA AQUI ******
+                if (header === 'MidiaURL' && value && value.startsWith('http')) {
+                    cellContent = `<a href="${value}" target="_blank" download style="color: var(--primary-color); text-decoration: none;">Download <i class="fas fa-download"></i></a>`;
+                } else {
+                    if (typeof value === 'string' && (value.includes('GMT') || /^\d{4}-\d{2}-\d{2}T/.test(value))) {
+                        value = new Date(value).toLocaleString('pt-BR');
+                    }
+                    cellContent = value !== null ? value : '';
+                }
+                tableHTML += `<td>${cellContent}</td>`;
+            });
+            tableHTML += '</tr>';
+        });
+        tableHTML += '</tbody></table>';
+        container.innerHTML = tableHTML;
+    }
+
+    function downloadResults() {
+        if (currentResultsData.length === 0) return;
+
+        const headers = Object.keys(currentResultsData[0]);
+        let csvContent = headers.join(',') + '\n';
+
+        currentResultsData.forEach(row => {
+            const values = headers.map(header => {
+                let value = row[header];
+                if (typeof value === 'string' && value.includes(',')) {
+                    return `"${value}"`;
+                }
+                return value;
+            });
+            csvContent += values.join(',') + '\n';
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "resultados_pesquisa.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+</script>
+</body>
+</html>

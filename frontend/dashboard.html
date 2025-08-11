@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fato ou Fake? – Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{ font-family:"Segoe UI",sans-serif; background:#f9f9fb; color:#272727; min-height:100vh; display:flex; flex-direction:column; }
+        .navbar{ background:#ffffff; padding:10px 32px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,.06); font-size:14px; }
+        .nav-links{display:flex;gap:24px}
+        .nav-links a{color:#666;text-decoration:none}
+        .nav-links a:hover{color:#000}
+        .nav-actions button{ padding:4px 12px; font-size:13px; border-radius:4px; border:1px solid #d0d0d0; background:#fff; cursor:pointer; margin-left:10px; }
+        .nav-actions .primary{ background:#2b2b2b; color:#fff; border:none; }
+        .hero{ background:#e5e5e7; padding:60px 16px 80px; text-align:center; flex:1; display:flex; flex-direction:column; align-items:center; }
+        .hero h1{font-size:42px;font-weight:700;margin-bottom:8px}
+        .hero p{color:#555;font-size:16px;margin-bottom:50px}
+        .cards{ display:flex; gap:40px; flex-wrap:wrap; justify-content:center; }
+        .card{ width:190px; height:190px; border:1px solid #bfbfbf; background:#ffffff; border-radius:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:.25s; text-decoration: none; color: inherit; }
+        .card:hover{box-shadow:0 4px 12px rgba(0,0,0,.12);transform:translateY(-4px)}
+        .card i{font-size:48px;color:#272727;margin-bottom:14px}
+        .card h3{font-size:17px;margin-bottom:4px}
+        .card small{font-size:12px;color:#666}
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <nav class="nav-links">
+            <a href="#">Projetos</a>
+            <a href="#">Membros</a>
+            <a href="#">Recursos</a>
+            <a href="#">Contato</a>
+        </nav>
+        <div class="nav-actions" id="nav-actions">
+            <!-- Botão de Sair será inserido aqui -->
+        </div>
+    </header>
+    <section class="hero">
+        <h1>Fato ou Fake?</h1>
+        <p>Grupo de extensão da UFSCAR</p>
+        <div class="cards">
+            <a href="upload.html" class="card">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Upload</h3>
+                <small>Fazer upload de datasets<br>para o sistema</small>
+            </a>
+            <a href="pesquisar.html" class="card">
+                <i class="fas fa-search"></i>
+                <h3>Pesquisar</h3>
+                <small>Buscar datasets já<br>existentes</small>
+            </a>
+        </div>
+    </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navActions = document.getElementById('nav-actions');
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                navActions.innerHTML = '<button class="primary" id="logoutButton">Sair</button>';
+                document.getElementById('logoutButton').addEventListener('click', () => {
+                    localStorage.removeItem('authToken');
+                    window.location.href = 'index.html';
+                });
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>
+
