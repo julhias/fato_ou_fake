@@ -108,7 +108,11 @@
 <section id="results-area">
     <div class="results-header">
         <h2>Resultados da Pesquisa</h2>
+<<<<<<< HEAD
         <button id="downloadButton" class="btn-download" disabled>Download de Todos (CSV)</button>
+=======
+        <button id="downloadButton" class="btn-download" disabled>Download (CSV)</button>
+>>>>>>> f5e5564f9f964aa96406a6a172fb6c6939410858
     </div>
     <div id="results-container">
         <p id="results-message">Nenhuma pesquisa foi realizada ainda.</p>
@@ -230,18 +234,22 @@
         downloadButton.disabled = false;
         let tableHTML = '<table id="results-table"><thead><tr>';
         const headers = Object.keys(data[0]);
+<<<<<<< HEAD
         
         // Adiciona uma coluna de Ações se ainda não existir
         if (!headers.includes('Ações')) {
             headers.push('Ações');
         }
 
+=======
+>>>>>>> f5e5564f9f964aa96406a6a172fb6c6939410858
         headers.forEach(header => tableHTML += `<th>${header}</th>`);
         tableHTML += '</tr></thead><tbody>';
 
         data.forEach(row => {
             tableHTML += '<tr>';
             headers.forEach(header => {
+<<<<<<< HEAD
                 let cellContent = '';
                 if (header === 'Ações') {
                     // Se a linha tiver uma MidiaURL válida, cria um botão de download
@@ -257,6 +265,21 @@
                     cellContent = (value === null || value === 'null') ? '' : value;
                     tableHTML += `<td>${cellContent}</td>`;
                 }
+=======
+                let value = row[header];
+                let cellContent = '';
+
+                // ****** CORREÇÃO APLICADA AQUI ******
+                if (header === 'MidiaURL' && value && value.startsWith('http')) {
+                    cellContent = `<a href="${value}" target="_blank" download style="color: var(--primary-color); text-decoration: none;">Download <i class="fas fa-download"></i></a>`;
+                } else {
+                    if (typeof value === 'string' && (value.includes('GMT') || /^\d{4}-\d{2}-\d{2}T/.test(value))) {
+                        value = new Date(value).toLocaleString('pt-BR');
+                    }
+                    cellContent = value !== null ? value : '';
+                }
+                tableHTML += `<td>${cellContent}</td>`;
+>>>>>>> f5e5564f9f964aa96406a6a172fb6c6939410858
             });
             tableHTML += '</tr>';
         });
