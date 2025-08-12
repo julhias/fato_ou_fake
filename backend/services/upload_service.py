@@ -54,13 +54,19 @@ def criar_lote_resultados(data: UploadResultadosSchema, usuario_id: int):
     return {"message": "Lote de resultados processado com sucesso!"}
 
 def salvar_midia(data: ArmazenarMidiaSchema, usuario_id: int):
+    # Converte a lista de tipos de conteúdo para uma string JSON
+    tipos_conteudo_json = json.dumps(data.tiposConteudo) if data.tiposConteudo else None
+    
+    # Adiciona o novo parâmetro aos argumentos
     args = (
         usuario_id, 
         data.nomeDataset, 
         data.descricaoDataset,
         data.fonteGeral, 
-        data.midiaUrl
+        data.midiaUrl,
+        tipos_conteudo_json # <-- NOVO ARGUMENTO
     )
     db_repository.armazenar_midia_repo(args)
     return {"message": "Mídia armazenada com sucesso!"}
+
 

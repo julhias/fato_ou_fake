@@ -1,6 +1,5 @@
 # backend/schemas/upload_schemas.py
-
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from datetime import date, datetime
 
@@ -23,9 +22,6 @@ class UploadResultadosSchema(BaseModel):
     dataExecucao: datetime
     parametrosAlgoritmo: Dict[str, Any]
     tiposConteudo: List[str]
-    
-    # --- ALTERAÇÃO PRINCIPAL ---
-    # Agora, ou recebemos os dados diretamente, ou recebemos uma URL para os ir buscar.
     loteDados: Optional[List[LoteDadosItem]] = None
     gdriveUrl: Optional[str] = None
 
@@ -34,3 +30,4 @@ class ArmazenarMidiaSchema(BaseModel):
     descricaoDataset: str
     fonteGeral: Optional[str] = None
     midiaUrl: str
+    tiposConteudo: List[str]

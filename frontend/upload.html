@@ -204,6 +204,8 @@
             if (response.ok && result.success) {
                 showNotification(result.message, 'success');
                 mainForm.reset();
+                document.getElementById('fileStatusResultados').classList.add('hidden');
+                document.getElementById('fileStatusArmazenar').classList.add('hidden');
                 document.getElementById('formResultados').classList.add('hidden');
                 document.getElementById('formArmazenar').classList.add('hidden');
                 document.getElementById('formActions').classList.add('hidden');
@@ -311,6 +313,7 @@
             descricaoDataset: document.querySelector('#formArmazenar #descricaoDataset').value,
             fonteGeral: document.querySelector('#formArmazenar #fonteGeral').value,
             midiaUrl: mediaUrlToSubmit,
+            tiposConteudo: Array.from(document.querySelectorAll('#tiposConteudoArmazenar input:checked')).map(cb => cb.value)
         };
     }
 
