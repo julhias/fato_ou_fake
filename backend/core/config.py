@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     DB_USER: str = os.getenv("DB_USER")
     DB_PASSWORD: str = os.getenv("DB_PASSWORD")
     DB_NAME: str = os.getenv("DB_NAME")
+    MAIL_SERVER: str
+    MAIL_PORT: int
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
     
     # --- NEW ---
     # Load the secret key for signing JWTs

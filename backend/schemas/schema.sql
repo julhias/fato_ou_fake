@@ -140,36 +140,14 @@ END$$
 DELIMITER ;
 
 DROP PROCEDURE IF EXISTS sp_ArmazenarLoteMidia;
-
-
 DELIMITER $$
-CREATE PROCEDURE sp_ArmazenarLoteMidia(
-    IN p_UsuarioID INT,
-    IN p_NomeDataset VARCHAR(255),
-    IN p_DescricaoDataset TEXT,
-    IN p_FonteGeral VARCHAR(255),
-    IN p_MidiaURL VARCHAR(1024),
-    IN p_TiposConteudoJSON JSON 
-)
+CREATE PROCEDURE sp_ArmazenarLoteMidia(IN p_UsuarioID INT, IN p_NomeDataset VARCHAR(255), IN p_DescricaoDataset TEXT, IN p_FonteGeral VARCHAR(255), IN p_MidiaURL VARCHAR(1024), IN p_TiposConteudoJSON JSON)
 BEGIN
     DECLARE v_ConteudoID INT;
-
-    -- Insere o conteúdo principal
-    INSERT INTO Conteudo (MidiaURL, Fonte, Metadados, UsuarioUploaderID)
-    VALUES (
-        p_MidiaURL, 
-        p_FonteGeral,
-        JSON_OBJECT('dataset', p_NomeDataset, 'descricao', p_DescricaoDataset),
-        p_UsuarioID
-    );
+    INSERT INTO Conteudo (MidiaURL, Fonte, Metadados, UsuarioUploaderID) VALUES (p_MidiaURL, p_FonteGeral, JSON_OBJECT('dataset', p_NomeDataset, 'descricao', p_DescricaoDataset), p_UsuarioID);
     SET v_ConteudoID = LAST_INSERT_ID();
-
-    --  Se foram fornecidos tipos de conteúdo, insere-os na tabela de ligação
     IF p_TiposConteudoJSON IS NOT NULL AND JSON_LENGTH(p_TiposConteudoJSON) > 0 THEN
-        INSERT INTO Conteudo_Tipos (ConteudoID, TipoID)
-        SELECT v_ConteudoID, T.TipoID FROM TiposDeConteudo T
-        JOIN JSON_TABLE(p_TiposConteudoJSON, '$[*]' COLUMNS (Nome VARCHAR(50) PATH '$')) AS TiposSelecionados
-        ON T.Nome = TiposSelecionados.Nome;
+        INSERT INTO Conteudo_Tipos (ConteudoID, TipoID) SELECT v_ConteudoID, T.TipoID FROM TiposDeConteudo T JOIN JSON_TABLE(p_TiposConteudoJSON, '$[*]' COLUMNS (Nome VARCHAR(50) PATH '$')) AS TiposSelecionados ON T.Nome = TiposSelecionados.Nome;
     END IF;
 END$$
 DELIMITER ;
@@ -193,6 +171,40 @@ BEGIN
 END$$
 DELIMITER ;
 
+-- --- NOVA PROCEDURE ADICIONADA ---
+DROP PROCEDURE IF EXISTS sp_AdminRegistrarUsuario;
+DELIMITER $$
+CREATE PROCEDURE sp_AdminRegistrarUsuario(
+    IN p_AdminUsuarioID INT,
+    IN p_NovoUsuarioNome VARCHAR(255),
+    IN p_NovoUsuarioEmail VARCHAR(255),
+    IN p_SenhaEmTextoPlano VARCHAR(255),
+    IN p_NovoUsuarioRole ENUM('admin', 'pesquisador')
+)
+BEGIN
+    DECLARE v_AdminRole VARCHAR(50);
+    DECLARE v_SenhaHash VARCHAR(256);
+    DECLARE v_EmailCount INT;
+
+    SELECT Role INTO v_AdminRole FROM Usuario WHERE UsuarioID = p_AdminUsuarioID;
+
+    IF v_AdminRole IS NULL OR v_AdminRole != 'admin' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ação não permitida. Apenas administradores podem registrar novos usuários.';
+    END IF;
+
+    SELECT COUNT(*) INTO v_EmailCount FROM Usuario WHERE Email = p_NovoUsuarioEmail;
+    
+    IF v_EmailCount > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'O email fornecido já está em uso.';
+    END IF;
+
+    SET v_SenhaHash = SHA2(p_SenhaEmTextoPlano, 256);
+
+    INSERT INTO Usuario (Nome, Email, SenhaHash, Role)
+    VALUES (p_NovoUsuarioNome, p_NovoUsuarioEmail, v_SenhaHash, p_NovoUsuarioRole);
+END$$
+DELIMITER ;
+
 -- =====================================================================
 -- TRIGGERS
 -- =====================================================================
@@ -204,3 +216,27 @@ BEGIN
     VALUES (NEW.ProcessoID, 'Processado', 'Processo de detecção registrado com sucesso.');
 END$$
 DELIMITER ;
+
+-- =====================================================================
+-- DADOS INICIAIS (PARA TESTE)
+-- =====================================================================
+
+-- --- CORREÇÃO APLICADA AQUI ---
+-- Desativa temporariamente a verificação de chaves estrangeiras para permitir a limpeza das tabelas
+SET FOREIGN_KEY_CHECKS=0;
+
+-- Limpa as tabelas de usuários e tipos de conteúdo para garantir um estado limpo
+TRUNCATE TABLE Usuario;
+TRUNCATE TABLE TiposDeConteudo;
+-- Também é uma boa ideia limpar a tabela Conteudo, que depende do Usuario
+TRUNCATE TABLE Conteudo; 
+
+-- Reativa a verificação de chaves estrangeiras
+SET FOREIGN_KEY_CHECKS=1;
+-- ---------------------------------
+
+-- Insere o utilizador de teste com o perfil de ADMIN
+INSERT INTO Usuario (Nome, Email, SenhaHash, Role) VALUES ('Administrador de Teste', 'teste@email.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'admin');
+
+-- Insere os tipos de conteúdo básicos
+INSERT INTO TiposDeConteudo (Nome) VALUES ('Texto'), ('Imagem'), ('Audio'), ('Video');

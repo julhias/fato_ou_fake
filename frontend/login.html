@@ -38,7 +38,7 @@
         </div>
         <div class="nav-buttons">
             <a href="login.html" class="btn light">Entrar</a>
-            <a href="#" class="btn dark">Registrar</a>
+            <a href="registrar.html" class="btn dark">Registrar</a>
         </div>
     </header>
     <main>
@@ -75,7 +75,9 @@
                 });
                 const result = await response.json();
                 if (response.ok && result.success) {
+                    // Guarda tanto o token como o perfil do utilizador
                     localStorage.setItem('authToken', result.token);
+                    localStorage.setItem('userRole', result.role);
                     window.location.href = 'dashboard.html';
                 } else {
                     throw new Error(result.message || 'Email ou senha inválidos.');

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Painel de Administração – Fato ou Fake?</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        :root {--primary-color: #3a86ff; --dark-color: #2b2b2b; --light-gray: #f7f7f7; --border-color: #dcdcdc;}
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Segoe UI", sans-serif; background: var(--light-gray); color: #333; }
+        .navbar { background: #ffffff; padding: 10px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); font-size: 14px; }
+        .nav-links a { color: #666; text-decoration: none; margin-right: 24px; }
+        .nav-actions button { padding: 4px 12px; font-size: 13px; border-radius: 4px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; }
+        .nav-actions .primary { background: var(--dark-color); color: #fff; border: none; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 20px; }
+        .admin-section { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 30px; }
+        h2 { font-size: 22px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .field { display: flex; flex-direction: column; }
+        .field label { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+        .field input, .field select { padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        .form-actions { margin-top: 20px; }
+        .form-actions button { padding: 12px 24px; font-size: 15px; border-radius: 6px; border: none; background: var(--primary-color); color: #fff; cursor: pointer; }
+        #users-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        #users-table th, #users-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        #users-table th { background-color: #f8f9fa; }
+        #notification { padding: 12px; margin-top: 20px; border-radius: 8px; color: #fff; font-weight: 600; display: none; }
+        #notification.success { background-color: #28a745; }
+        #notification.error { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+<header class="navbar">
+    <nav class="nav-links">
+        <a href="dashboard.html">Home</a>
+        <a href="pesquisar.html">Pesquisar</a>
+        <a href="upload.html">Upload</a>
+    </nav>
+    <div class="nav-actions" id="nav-actions"></div>
+</header>
+<main class="container">
+    <section class="admin-section">
+        <h2>Registrar Novo Utilizador</h2>
+        <form id="registerForm">
+            <div class="form-grid">
+                <div class="field"><label for="nome">Nome Completo</label><input type="text" id="nome" required></div>
+                <div class="field"><label for="email">Email</label><input type="email" id="email" required></div>
+                <div class="field"><label for="senha">Senha</label><input type="password" id="senha" required></div>
+                <div class="field"><label for="role">Perfil</label><select id="role"><option value="pesquisador">Pesquisador</option><option value="admin">Administrador</option></select></div>
+            </div>
+            <div class="form-actions"><button type="submit" id="submitButton">Criar Utilizador</button></div>
+        </form>
+        <div id="notification"></div>
+    </section>
+    <section class="admin-section">
+        <h2>Utilizadores Existentes</h2>
+        <div id="users-list-container"></div>
+    </section>
+</main>
+<script>
+    const API_URL = 'http://127.0.0.1:5000/api';
+    const token = localStorage.getItem('authToken');
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const navActions = document.getElementById('nav-actions');
+        // Verifica se o utilizador está logado e tem o perfil de admin
+        if (token && localStorage.getItem('userRole') === 'admin') {
+            navActions.innerHTML = '<button class="primary" id="logoutButton">Sair</button>';
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            });
+            loadUsers();
+        } else {
+            // Se não for admin, nega o acesso
+            document.body.innerHTML = '<h1>Acesso Negado</h1><p>Você não tem permissão para ver esta página.</p>';
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', handleRegister);
+    });
+
+    async function loadUsers() {
+        const container = document.getElementById('users-list-container');
+        try {
+            const response = await fetch(`${API_URL}/users`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+
+            let tableHTML = '<table id="users-table"><thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Perfil</th><th>Data de Registo</th></tr></thead><tbody>';
+            result.data.forEach(user => {
+                tableHTML += `<tr>
+                    <td>${user.UsuarioID}</td>
+                    <td>${user.Nome}</td>
+                    <td>${user.Email}</td>
+                    <td>${user.Role}</td>
+                    <td>${new Date(user.DataCadastro).toLocaleString('pt-BR')}</td>
+                </tr>`;
+            });
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        } catch (error) {
+            container.innerHTML = `<p style="color: red;">Erro ao carregar utilizadores: ${error.message}</p>`;
+        }
+    }
+
+    async function handleRegister(event) {
+        event.preventDefault();
+        const submitButton = document.getElementById('submitButton');
+        const notification = document.getElementById('notification');
+        
+        const payload = {
+            nome: document.getElementById('nome').value,
+            email: document.getElementById('email').value,
+            senha: document.getElementById('senha').value,
+            role: document.getElementById('role').value
+        };
+
+        submitButton.disabled = true;
+        notification.style.display = 'none';
+
+        try {
+            const response = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+            
+            showNotification(result.message, 'success');
+            document.getElementById('registerForm').reset();
+            loadUsers(); // Recarrega a lista de utilizadores
+        } catch (error) {
+            showNotification(`Erro: ${error.message}`, 'error');
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = type;
+        notification.style.display = 'block';
+        setTimeout(() => { notification.style.display = 'none'; }, 5000);
+    }
+</script>
+</body>
+</html>

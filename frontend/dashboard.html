@@ -9,7 +9,7 @@
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         body{ font-family:"Segoe UI",sans-serif; background:#f9f9fb; color:#272727; min-height:100vh; display:flex; flex-direction:column; }
         .navbar{ background:#ffffff; padding:10px 32px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,.06); font-size:14px; }
-        .nav-links{display:flex;gap:24px}
+        .nav-links{display:flex;gap:24px; align-items: center;}
         .nav-links a{color:#666;text-decoration:none}
         .nav-links a:hover{color:#000}
         .nav-actions button{ padding:4px 12px; font-size:13px; border-radius:4px; border:1px solid #d0d0d0; background:#fff; cursor:pointer; margin-left:10px; }
@@ -27,15 +27,13 @@
 </head>
 <body>
     <header class="navbar">
-        <nav class="nav-links">
-            <a href="#">Projetos</a>
-            <a href="#">Membros</a>
-            <a href="#">Recursos</a>
-            <a href="#">Contato</a>
+        <nav class="nav-links" id="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="pesquisar.html">Pesquisar</a>
+            <a href="upload.html">Upload</a>
+            <!-- O link de Admin será inserido aqui se o utilizador for admin -->
         </nav>
-        <div class="nav-actions" id="nav-actions">
-            <!-- Botão de Sair será inserido aqui -->
-        </div>
+        <div class="nav-actions" id="nav-actions"></div>
     </header>
     <section class="hero">
         <h1>Fato ou Fake?</h1>
@@ -56,13 +54,24 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const navActions = document.getElementById('nav-actions');
+            const navLinks = document.getElementById('nav-links');
             const token = localStorage.getItem('authToken');
+            const userRole = localStorage.getItem('userRole');
+
             if (token) {
                 navActions.innerHTML = '<button class="primary" id="logoutButton">Sair</button>';
                 document.getElementById('logoutButton').addEventListener('click', () => {
-                    localStorage.removeItem('authToken');
+                    localStorage.clear(); // Limpa tudo (token e perfil)
                     window.location.href = 'index.html';
                 });
+                
+                // Se o utilizador for admin, adiciona o link para o painel de administração
+                if (userRole === 'admin') {
+                    const adminLink = document.createElement('a');
+                    adminLink.href = 'admin.html';
+                    adminLink.textContent = 'Admin';
+                    navLinks.appendChild(adminLink);
+                }
             } else {
                 window.location.href = 'login.html';
             }
@@ -70,4 +79,3 @@
     </script>
 </body>
 </html>
-

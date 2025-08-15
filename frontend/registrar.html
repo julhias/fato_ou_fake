@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Solicitar Registo – Fato ou Fake?</title>
+    <style>
+        :root { --primary-color: #3a86ff; --dark-color: #2b2b2b; --light-gray: #f7f7f7; --border-color: #dcdcdc; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: "Segoe UI", sans-serif; background: var(--light-gray); color: #333; display: flex; flex-direction: column; min-height: 100vh; }
+        .navbar { background: #ffffff; padding: 10px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); font-size: 14px; }
+        .nav-links a { color: #666; text-decoration: none; }
+        .nav-buttons a { padding: 8px 16px; font-size: 14px; border-radius: 6px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; margin-left: 10px; text-decoration: none; color: #333; }
+        main { flex: 1; display: flex; justify-content: center; align-items: center; }
+        .register-container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.1); width: 100%; max-width: 450px; text-align: center; }
+        h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        p { color: #666; margin-bottom: 25px; font-size: 15px; }
+        .register-form { display: flex; flex-direction: column; text-align: left; }
+        .register-form label { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+        .register-form input { padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; margin-bottom: 16px; }
+        .register-form button { padding: 14px; font-size: 16px; border-radius: 8px; border: none; background: var(--dark-color); color: #fff; cursor: pointer; font-weight: 600; }
+        #notification { padding: 12px; margin-top: 20px; border-radius: 8px; color: #fff; font-weight: 600; display: none; }
+        #notification.success { background-color: #28a745; }
+        #notification.error { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-links"><a href="index.html">Voltar à Página Inicial</a></div>
+        <div class="nav-buttons"><a href="login.html" class="btn light">Já tenho conta</a></div>
+    </header>
+    <main>
+        <div class="register-container">
+            <h1>Solicitar Acesso à Plataforma</h1>
+            <p>Preencha os seus dados. O seu pedido será enviado a um administrador para aprovação.</p>
+            <form class="register-form" id="registerForm">
+                <label for="nome">Nome Completo</label>
+                <input type="text" id="nome" placeholder="Seu nome" required />
+                <label for="email">Email Institucional</label>
+                <input type="email" id="email" placeholder="seu.nome@ufscar.br" required />
+                <button type="submit" id="submitButton">Enviar Pedido</button>
+                <div id="notification"></div>
+            </form>
+        </div>
+    </main>
+    <script>
+        const API_URL = 'http://127.0.0.1:5000/api';
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const submitButton = document.getElementById('submitButton');
+            const notification = document.getElementById('notification');
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+
+            submitButton.disabled = true;
+            submitButton.textContent = 'A enviar...';
+            notification.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/request-registration`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email })
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    notification.textContent = result.message;
+                    notification.className = 'success';
+                    document.getElementById('registerForm').reset();
+                } else {
+                    throw new Error(result.message || 'Não foi possível enviar o pedido.');
+                }
+            } catch (error) {
+                notification.textContent = error.message;
+                notification.className = 'error';
+            } finally {
+                notification.style.display = 'block';
+                submitButton.disabled = false;
+                submitButton.textContent = 'Enviar Pedido';
+            }
+        });
+    </script>
+</body>
+</html>
