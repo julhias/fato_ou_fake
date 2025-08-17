@@ -13,7 +13,6 @@ CREATE TABLE Usuario (
 );
 
 -- Tabela para armazenar os tipos de conteúdo possíveis
--- CORREÇÃO: Adicionada a criação da tabela que estava faltando.
 CREATE TABLE TiposDeConteudo (
     TipoID INT PRIMARY KEY AUTO_INCREMENT,
     Nome VARCHAR(50) NOT NULL UNIQUE -- Ex: 'Texto', 'Imagem', 'Audio', 'Video'
