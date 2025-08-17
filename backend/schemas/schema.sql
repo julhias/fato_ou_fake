@@ -171,7 +171,7 @@ BEGIN
 END$$
 DELIMITER ;
 
--- --- NOVA PROCEDURE ADICIONADA ---
+
 DROP PROCEDURE IF EXISTS sp_AdminRegistrarUsuario;
 DELIMITER $$
 CREATE PROCEDURE sp_AdminRegistrarUsuario(
@@ -221,7 +221,6 @@ DELIMITER ;
 -- DADOS INICIAIS (PARA TESTE)
 -- =====================================================================
 
--- --- CORREÇÃO APLICADA AQUI ---
 -- Desativa temporariamente a verificação de chaves estrangeiras para permitir a limpeza das tabelas
 SET FOREIGN_KEY_CHECKS=0;
 
