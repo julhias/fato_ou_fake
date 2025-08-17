@@ -25,13 +25,10 @@ def token_required(f):
         try:
             key_para_validar = current_app.config.get('SECRET_KEY')
             
-            # --- DEBUG ADICIONADO ---
-            # Imprime a chave que está sendo usada para VALIDAR o token.
-            # Compare este output com a chave usada para GERAR o token.
-            print(f"DEBUG: Chave usada para VALIDAR o token: '{key_para_validar}'")
-            # --------------------------
-            
-            # --- CORREÇÃO FINAL: Adiciona um 'leeway' de 10 segundos ---
+            # --- DEBUG  ---
+      
+            # print(f"DEBUG: Chave usada para VALIDAR o token: '{key_para_validar}'")
+        
             # Isso corrige problemas de desvio de relógio (clock skew) entre a
             # criação e a validação do token.
             data = jwt.decode(
