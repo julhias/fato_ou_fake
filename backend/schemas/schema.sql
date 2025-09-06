@@ -141,14 +141,40 @@ DELIMITER ;
 
 DROP PROCEDURE IF EXISTS sp_ArmazenarLoteMidia;
 DELIMITER $$
-CREATE PROCEDURE sp_ArmazenarLoteMidia(IN p_UsuarioID INT, IN p_NomeDataset VARCHAR(255), IN p_DescricaoDataset TEXT, IN p_FonteGeral VARCHAR(255), IN p_MidiaURL VARCHAR(1024), IN p_TiposConteudoJSON JSON)
+CREATE PROCEDURE sp_ArmazenarLoteMidia(
+    IN p_UsuarioID INT, 
+    IN p_NomeDataset VARCHAR(255), 
+    IN p_DescricaoDataset TEXT, 
+    IN p_FonteGeral VARCHAR(255), 
+    IN p_MidiaURL VARCHAR(1024), 
+    IN p_TiposConteudoJSON JSON
+)
 BEGIN
     DECLARE v_ConteudoID INT;
-    INSERT INTO Conteudo (MidiaURL, Fonte, Metadados, UsuarioUploaderID) VALUES (p_MidiaURL, p_FonteGeral, JSON_OBJECT('dataset', p_NomeDataset, 'descricao', p_DescricaoDataset), p_UsuarioID);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        RESIGNAL; 
+    END;
+
+    START TRANSACTION; 
+
+    INSERT INTO Conteudo (MidiaURL, Fonte, Metadados, UsuarioUploaderID) 
+    VALUES (p_MidiaURL, p_FonteGeral, JSON_OBJECT('dataset', p_NomeDataset, 'descricao', p_DescricaoDataset), p_UsuarioID);
+    
     SET v_ConteudoID = LAST_INSERT_ID();
+
     IF p_TiposConteudoJSON IS NOT NULL AND JSON_LENGTH(p_TiposConteudoJSON) > 0 THEN
-        INSERT INTO Conteudo_Tipos (ConteudoID, TipoID) SELECT v_ConteudoID, T.TipoID FROM TiposDeConteudo T JOIN JSON_TABLE(p_TiposConteudoJSON, '$[*]' COLUMNS (Nome VARCHAR(50) PATH '$')) AS TiposSelecionados ON T.Nome = TiposSelecionados.Nome;
+        -- Adicionado IGNORE para forçar o MySQL a descartar duplicatas sem gerar erro.
+        INSERT IGNORE INTO Conteudo_Tipos (ConteudoID, TipoID) 
+        SELECT DISTINCT v_ConteudoID, T.TipoID 
+        FROM TiposDeConteudo T 
+        JOIN JSON_TABLE(p_TiposConteudoJSON, '$[*]' COLUMNS (Nome VARCHAR(50) PATH '$')) AS TiposSelecionados 
+        ON T.Nome = TiposSelecionados.Nome;
     END IF;
+    
+    COMMIT; 
+
 END$$
 DELIMITER ;
 

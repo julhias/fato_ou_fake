@@ -12,7 +12,7 @@
         .navbar { background: #ffffff; padding: 10px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); font-size: 14px; }
         .nav-links { display: flex; gap: 24px; }
         .nav-links a { color: #666; text-decoration: none; }
-        .nav-actions button { padding: 4px 12px; font-size: 13px; border-radius: 4px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; margin-left: 10px; }
+        .nav-actions a, .nav-actions button { padding: 4px 12px; font-size: 13px; border-radius: 4px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; margin-left: 10px; text-decoration: none; color: #333; }
         .nav-actions .primary { background: #2b2b2b; color: #fff; border: none; }
         .search-wrapper { display: flex; gap: 12px; padding: 28px 24px; background: #fff; flex-wrap: wrap; align-items: center; border-bottom: 1px solid #eee; }
         .search-wrapper input[type="text"] { flex: 1; min-width: 200px; padding: 10px 16px; border: 1px solid var(--border-color); border-radius: 50px; font-size: 14px; }
@@ -91,7 +91,12 @@
         <fieldset>
             <legend>Filtros de Mídia Armazenada</legend>
             <div class="filtro-group"><label for="nomeDataset">Nome do Dataset</label><input type="text" id="nomeDataset"></div>
-            <div class="filtro-group"><label for="fonteMidia">Fonte</label><input type="text" id="fonteMidia" placeholder="Fonte geral do lote"></div>
+            
+            <div class="filtro-group">
+                <label for="filtroFonteArmazenamento">Fonte</label>
+                <input type="text" id="filtroFonteArmazenamento" placeholder="Fonte geral do lote">
+            </div>
+            
             <div class="filtro-group"><label for="nomeUploaderArmazenamento">Enviado por (Uploader)</label><input type="text" id="nomeUploaderArmazenamento"></div>
             <div class="filtro-group" style="flex-basis: 100%;"><label>Tipo de Conteúdo</label>
                 <div class="checkbox-group" id="tiposConteudoArmazenamento">
@@ -129,7 +134,10 @@
                 window.location.href = 'index.html';
             });
         } else {
-            window.location.href = 'login.html';
+            navActions.innerHTML = `
+                <a href="login.html" style="padding: 4px 12px; font-size: 13px; border-radius: 4px; border: 1px solid #d0d0d0; background: #fff; cursor: pointer; text-decoration: none; color: #333;">Entrar</a>
+                <a href="registrar.html" style="padding: 4px 12px; font-size: 13px; border-radius: 4px; background: #2b2b2b; color: #fff; border: none; cursor: pointer; text-decoration: none;">Registar</a>
+            `;
         }
 
         const tipoPesquisaSelect = document.getElementById('tipoPesquisa');
@@ -193,16 +201,26 @@
             payload = {
                 textoLivre: document.getElementById('mainSearch').value || null,
                 nomeDataset: document.getElementById('nomeDataset').value || null,
-                fonte: document.getElementById('fonteMidia').value || null,
+                
+                // ****** CORREÇÃO APLICADA AQUI (JavaScript) ******
+                // Alterado de getElementById('fonteMidia') para getElementById('filtroFonteArmazenamento')
+                fonte: document.getElementById('filtroFonteArmazenamento').value || null,
+                // ****** FIM DA CORREÇÃO ******
+
                 nomeUploader: document.getElementById('nomeUploaderArmazenamento').value || null,
                 tiposConteudoJSON: Array.from(document.querySelectorAll('#tiposConteudoArmazenamento input:checked')).map(cb => cb.value)
             };
         }
         
         try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch(endpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: headers,
                 body: JSON.stringify(payload)
             });
             const result = await response.json();
