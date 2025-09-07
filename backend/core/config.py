@@ -1,28 +1,32 @@
 # backend/core/config.py
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
 import os
-from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
 
-# Load environment variables from .env file
-load_dotenv()
+# O caminho para o arquivo .env continua o mesmo, ele será lido no servidor
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
 
 class Settings(BaseSettings):
-    """
-    Pydantic model to hold all application settings, loaded from environment variables.
-    """
-    DB_HOST: str = os.getenv("DB_HOST", "localhost")
-    DB_USER: str = os.getenv("DB_USER")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD")
-    DB_NAME: str = os.getenv("DB_NAME")
-    MAIL_SERVER: str
-    MAIL_PORT: int
-    MAIL_USERNAME: str
-    MAIL_PASSWORD: str
-    
-    # --- NEW ---
-    # Load the secret key for signing JWTs
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
+    model_config = SettingsConfigDict(env_file=env_path, env_file_encoding='utf-8')
 
-# Create a single instance of the settings to be used throughout the app
+    # Configurações do banco de dados (lidas do .env)
+    DB_HOST: str
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_NAME: str
+    SECRET_KEY: str
+
+    # --- CONFIGURAÇÕES DE PRODUÇÃO ---
+
+    # Caminho absoluto para a pasta no servidor onde os arquivos serão salvos.
+    # Tem substituir pelo caminho real no seu servidor.
+    UPLOAD_FOLDER: str = "/var/www/fato-ou-fake/uploads"
+    
+    # URL base pública que apontará para os arquivos salvos.
+    # Substituir pelo domínio real da sua aplicação.
+    SERVER_BASE_URL: str = "https://servidor.ufscar.br"
+
 settings = Settings()
+
+# Garante que a pasta de uploads exista no servidor quando a aplicação iniciar
+os.makedirs(settings.UPLOAD_FOLDER, exist_ok=True)

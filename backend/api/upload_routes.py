@@ -4,31 +4,31 @@ from flask import Blueprint, request, jsonify
 from backend.controllers import upload_controller
 from backend.middlewares.auth_middleware import token_required
 
-# Define the blueprint for upload-related routes
 upload_bp = Blueprint('upload_bp', __name__)
 
 @upload_bp.route('/upload/resultados', methods=['POST'])
-@token_required  # Apply the security decorator
+@token_required
 def upload_resultados_route(current_user):
     """
-    Protected API endpoint for uploading a batch of analysis results.
+    Endpoint para fazer o upload de um lote de resultados de análise (via JSON).
     """
-    # Call the correct handler function from the controller
     response, status_code = upload_controller.handle_upload_resultados(
         request.get_json(),
-        current_user['usuarioId'] # Pass the real user ID from the token
+        current_user['usuarioId']
     )
     return jsonify(response), status_code
 
 @upload_bp.route('/upload/armazenar', methods=['POST'])
-@token_required # Apply the security decorator
+@token_required
 def upload_armazenar_route(current_user):
     """
-    Protected API endpoint for storing a batch of media.
+    Endpoint para armazenar mídias.
+    Aceita dados de formulário (multipart/form-data) que podem incluir arquivos.
     """
-    # Call the correct handler function from the controller
+    # Passa os dados do formulário e os arquivos para o controlador
     response, status_code = upload_controller.handle_armazenar_midia(
-        request.get_json(),
-        current_user['usuarioId'] # Pass the real user ID from the token
+        request.form,
+        request.files,
+        current_user['usuarioId']
     )
     return jsonify(response), status_code

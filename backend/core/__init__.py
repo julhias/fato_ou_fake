@@ -1,35 +1,42 @@
 # backend/core/__init__.py
 
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
+import os
 
-# 1. Import the settings object that loads your .env file
+# 1. Importar as configurações (que agora contêm UPLOAD_FOLDER)
 from backend.core.config import settings
 
-# Import your blueprints
+# Importar blueprints
 from backend.api.auth_routes import auth_bp
 from backend.api.upload_routes import upload_bp
-from backend.api.search_routes import search_bp 
+from backend.api.search_routes import search_bp
 from backend.core.error_handler import register_error_handlers
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
 
-    # 2. This is the crucial step!
-    # Load the SECRET_KEY from your settings into the Flask app's config.
-    # Now, current_app.config.get('SECRET_KEY') will return the correct value.
+    # Configurar a chave secreta e a pasta de upload no app Flask
     app.config['SECRET_KEY'] = settings.SECRET_KEY
+    app.config['UPLOAD_FOLDER'] = settings.UPLOAD_FOLDER
 
-    # Optional: Add this line to debug and confirm the key is loaded on startup
-    print(f"DEBUG: SECRET_KEY loaded into app.config: {app.config['SECRET_KEY']}")
-
-    # Register all blueprints with the app
+    # Registrar blueprints da API
     app.register_blueprint(auth_bp, url_prefix='/api')
     app.register_blueprint(upload_bp, url_prefix='/api')
     app.register_blueprint(search_bp, url_prefix='/api')
 
-    # Register the global error handlers
+    # Registrar manipuladores de erro globais
     register_error_handlers(app)
+
+    @app.route('/uploads/<path:filename>')
+    def serve_uploaded_file(filename):
+        """
+        Serve arquivos estáticos da pasta de upload configurada.
+        Isto permite que as URLs /uploads/nome_do_arquivo.jpg funcionem publicamente.
+        Usar send_from_directory é a forma segura de fazer isso.
+        """
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    # --- FIM DA MODIFICAÇÃO ---
 
     return app
