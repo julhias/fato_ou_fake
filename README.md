@@ -4,7 +4,7 @@ Este projeto é uma aplicação web completa projetada para centralizar, armazen
 
 ---
 
-## ✨ Funcionalidades Principais
+## Funcionalidades Principais
 
 - **Autenticação de Usuários**: Sistema de login seguro utilizando tokens JWT.
 - **Upload de Resultados**: Permite que usuários autenticados enviem lotes de resultados de análises em formato `.json` ou `.csv`, seja por upload de arquivo local ou via link do Google Drive.
@@ -14,7 +14,7 @@ Este projeto é uma aplicação web completa projetada para centralizar, armazen
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **Backend**:
   - **Linguagem**: Python 3
@@ -30,7 +30,7 @@ Este projeto é uma aplicação web completa projetada para centralizar, armazen
 
 ---
 
-## 🚀 Como Executar (Ambiente de Desenvolvimento)
+## Como Executar (Ambiente de Desenvolvimento)
 
 Siga os passos abaixo para configurar e rodar o projeto em sua máquina local.
 
@@ -96,7 +96,7 @@ Siga os passos abaixo para configurar e rodar o projeto em sua máquina local.
 
 ---
 
-## 📦 Deploy (Ambiente de Produção - Servidor)
+## Deploy (Ambiente de Produção - Servidor)
 
 Para implantar a aplicação em um servidor (como o da UFSCar), siga estes passos:
 
