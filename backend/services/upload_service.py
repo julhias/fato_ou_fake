@@ -38,7 +38,7 @@ def criar_lote_resultados(data: UploadResultadosSchema, usuario_id: int):
     parametros_json = json.dumps(data.parametrosAlgoritmo)
     tipos_conteudo_json = json.dumps(data.tiposConteudo)
     
-    # --- CORREÇÃO APLICADA AQUI ---
+
     # Usamos exclude_none=True para remover quaisquer campos com valor None (como datas opcionais).
     # Isso garante que o JSON_EXTRACT no MySQL retornará um NULL verdadeiro, que é aceite pela base de dados.
     lote_dados_dict = [item.model_dump(mode='json', exclude_none=True) for item in lote_dados_final]
@@ -64,7 +64,7 @@ def salvar_midia(data: ArmazenarMidiaSchema, usuario_id: int):
         data.descricaoDataset,
         data.fonteGeral, 
         data.midiaUrl,
-        tipos_conteudo_json # <-- NOVO ARGUMENTO
+        tipos_conteudo_json 
     )
     db_repository.armazenar_midia_repo(args)
     return {"message": "Mídia armazenada com sucesso!"}
