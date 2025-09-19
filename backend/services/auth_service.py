@@ -20,7 +20,7 @@ def realizar_login(email, senha):
     if not usuario_id or usuario_id == 0:
         raise UnauthorizedError("Email ou senha inválidos")
 
-    # --- NOVA LÓGICA PARA BUSCAR A ROLE ---
+  
     # Após validar o login, buscamos os detalhes do usuário, incluindo a role.
     user_details = db_repository.get_user_by_id_repo(usuario_id)
     if not user_details:
@@ -42,8 +42,7 @@ def realizar_login(email, senha):
         algorithm='HS256'
     )
 
-    # --- ATUALIZAÇÃO DO RETORNO ---
-    # Agora incluímos a 'role' na resposta para o frontend.
+
     return {
         "usuarioId": usuario_id,
         "token": token,
@@ -54,7 +53,7 @@ def registrar_novo_usuario(data: RegisterSchema, admin_id: int):
     """
     Prepara os argumentos e chama o repositório para registar um novo utilizador.
     """
-    # A ordem dos argumentos DEVE corresponder à procedure sp_AdminRegistrarUsuario
+
     args = (
         admin_id,
         data.nome,
