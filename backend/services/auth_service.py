@@ -46,7 +46,7 @@ def realizar_login(email, senha):
     return {
         "usuarioId": usuario_id,
         "token": token,
-        "role": user_details['Role'] # <-- AQUI ESTÁ A MUDANÇA!
+        "role": user_details['Role'] 
     }
 
 def registrar_novo_usuario(data: RegisterSchema, admin_id: int):
