@@ -202,10 +202,10 @@
                 textoLivre: document.getElementById('mainSearch').value || null,
                 nomeDataset: document.getElementById('nomeDataset').value || null,
                 
-                // ****** CORREÇÃO APLICADA AQUI (JavaScript) ******
+             
                 // Alterado de getElementById('fonteMidia') para getElementById('filtroFonteArmazenamento')
                 fonte: document.getElementById('filtroFonteArmazenamento').value || null,
-                // ****** FIM DA CORREÇÃO ******
+        
 
                 nomeUploader: document.getElementById('nomeUploaderArmazenamento').value || null,
                 tiposConteudoJSON: Array.from(document.querySelectorAll('#tiposConteudoArmazenamento input:checked')).map(cb => cb.value)
